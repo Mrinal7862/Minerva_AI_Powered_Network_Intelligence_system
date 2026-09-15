@@ -80,7 +80,7 @@ def find_shortest_path(start_id: str, target_id:str):
     [rel IN relationships(path) | type(rel)] AS relationships
     """
 
-    with db.driver.session(databe=db.database) as session:
+    with db.driver.session(database=db.database) as session:
         result = session.run(
             query,
             start_id=start_id,
