@@ -2,16 +2,12 @@ import streamlit as st
 import requests
 from pyvis.network import Network
 import streamlit.components.v1 as components
-import streamlit as st
-import requests
-from pyvis.network import Network
-import streamlit.components.v1 as components
+import os
 
+API_URL = os.getenv("MINERVA_API_URL", "http://127.0.0.1:8000")
+API_URL = os.getenv("MINERVA_API_URL", "http://127.0.0.1:8000")
 
-# =========================
-# PAGE CONFIGURATION
-# =========================
-
+#page config
 st.set_page_config(
     page_title="Minerva",
     page_icon="search",
@@ -217,7 +213,7 @@ if st.button("Analyze"):
     else:
 
         response = requests.post(
-            "http://127.0.0.1:8000/analyze",
+            f"{API_URL}/analyze",
             params={
                 "text": text
             }
@@ -286,7 +282,7 @@ if analyze_clicked:
         ):
 
             response = requests.post(
-                "http://127.0.0.1:8000/analyze",
+                f"{API_URL}/analyze",
                 params={
                     "text": text
                 }
@@ -338,7 +334,7 @@ if "selected_person" in st.session_state:
     st.header("Investigation Network")
 
     response = requests.get(
-        f"http://127.0.0.1:8000/persons/{person['id']}/network"
+        f"{API_URL}/persons/{person['id']}/network"
     )
 
     if response.status_code == 200:
@@ -426,7 +422,7 @@ target_id = st.text_input(
 if st.button("Find Connection"):
 
     response = requests.get(
-        "http://127.0.0.1:8000/connections/path",
+        f"{API_URL}/connections/path",
         params={
             "start_id": start_id,
             "target_id": target_id
@@ -513,7 +509,7 @@ if st.button("🧠 Ask MINERVA", use_container_width=True):
         with st.spinner("🧠 MINERVA is analyzing the investigation..."):
 
             response = requests.get(
-                "http://127.0.0.1:8000/investigator/ask",
+                f"{API_URL}/investigator/ask",
                 params={
                     "question": question,
                     "person_id": ai_person_id.strip(),
@@ -573,7 +569,7 @@ if st.button("🔍 Analyze Shared Connections", use_container_width=True):
     with st.spinner("🧠 MINERVA is analyzing shared resources..."):
 
         response = requests.get(
-            "http://127.0.0.1:8000/analytics/shared-connections"
+            f"{API_URL}/analytics/shared-connections"
         )
 
     if response.status_code == 200:
@@ -646,7 +642,7 @@ if st.button(
     with st.spinner("🧠 MINERVA is analyzing network structure..."):
 
         response = requests.get(
-            "http://127.0.0.1:8000/analytics/centrality"
+            f"{API_URL}/analytics/centrality"
         )
 
     if response.status_code == 200:
@@ -724,7 +720,7 @@ if st.button(
     with st.spinner("🧠 MINERVA is building the investigation timeline..."):
 
         response = requests.get(
-            "http://127.0.0.1:8000/analytics/timeline"
+           f"{API_URL}/analytics/timeline"
         )
 
     if response.status_code == 200:
