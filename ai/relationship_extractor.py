@@ -2,20 +2,18 @@ import re
 
 
 def extract_contact_relationship(text: str):
-
     relationships = []
 
     pattern = (
         r"([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)"
         r"\s+(?:met|called|contacted)\s+"
         r"([A-Z][a-z]+(?:\s[A-Z][a-z]+)*?)"
-        r"(?=\s+(?:at|in|on|using|with|regarding)\b|[.,]|$)"
+        r"(?=\s+(?:at|in|on|using|with|regarding|and)\b|[.,]|$)"
     )
 
     matches = re.finditer(pattern, text)
 
     for match in matches:
-
         relationships.append({
             "source": match.group(1).strip(),
             "relationship": "CONTACTED",
@@ -23,7 +21,6 @@ def extract_contact_relationship(text: str):
         })
 
     return relationships
-
 
 def extract_visited_relationship(text: str):
 
@@ -48,30 +45,52 @@ def extract_visited_relationship(text: str):
 
     return relationships
 
-
 def extract_uses_relationships(text: str):
-
     relationships = []
 
+    vehicle_pattern = r"\b[A-Z]{2}\d{2}[A-Z]{2}\d{4}\b"
+
+    # Handle:
+    # Ravi Sharma met Amit Verma ... and used vehicle DL01AB1234
     pattern = (
         r"([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)"
-        r"\s+(?:used|uses)\s+"
+        r"\s+(?:met|called|contacted)\s+"
+        r"[A-Z][a-z]+(?:\s[A-Z][a-z]+)*?"
+        r"\s+.*?\band\s+(?:used|uses)\s+"
         r"(?:vehicle\s+)?"
-        r"([A-Z]{2}\d{2}[A-Z]{2}\d{4})"
+        r"(" + vehicle_pattern + r")"
     )
 
     matches = re.finditer(pattern, text)
 
     for match in matches:
-
         relationships.append({
             "source": match.group(1).strip(),
             "relationship": "USES",
             "target": match.group(2).strip()
         })
 
-    return relationships
+    # Handle simple:
+    # Ravi Sharma used vehicle DL01AB1234
+    if not relationships:
 
+        simple_pattern = (
+            r"([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)"
+            r"\s+(?:used|uses)\s+"
+            r"(?:vehicle\s+)?"
+            r"(" + vehicle_pattern + r")"
+        )
+
+        matches = re.finditer(simple_pattern, text)
+
+        for match in matches:
+            relationships.append({
+                "source": match.group(1).strip(),
+                "relationship": "USES",
+                "target": match.group(2).strip()
+            })
+
+    return relationships
 
 def extract_relationships(text: str):
 

@@ -136,16 +136,17 @@ def get_person_evidence(person_id: str):
     return record.data()
 
 def get_case_connection_evidence(person_id: str, case_id: str):
-
     db = Neo4jDatabase()
 
     query = """
     MATCH path =
-    shortestPath(
-        (p:Person {id: $person_id})
-        -[*..6]-
-        (c:Case {id: $case_id})
-    )
+    (p:Person {id: $person_id})
+    -[*..6]-
+    (c:Case {id: $case_id})
+
+    WITH path
+    ORDER BY length(path)
+    LIMIT 1
 
     RETURN
         [node IN nodes(path) | {
@@ -160,13 +161,11 @@ def get_case_connection_evidence(person_id: str, case_id: str):
     """
 
     with db.driver.session(database=db.database) as session:
-
         result = session.run(
             query,
             person_id=person_id,
             case_id=case_id
         )
-
         record = result.single()
 
     db.close()
@@ -175,3 +174,106 @@ def get_case_connection_evidence(person_id: str, case_id: str):
         return None
 
     return record.data()
+
+def get_shared_connections():
+    db = Neo4jDatabase()
+
+    query = """
+    MATCH (p1:Person)-[:USES]->(resource)<-[:USES]-(p2:Person)
+    WHERE p1.id < p2.id
+
+    RETURN
+        p1.id AS person1_id,
+        p1.name AS person1_name,
+        labels(resource)[0] AS resource_type,
+        resource.id AS resource_id,
+        resource.number AS resource_number,
+        resource.registration AS resource_registration,
+        p2.id AS person2_id,
+        p2.name AS person2_name
+
+    ORDER BY resource_type
+    """
+
+    with db.driver.session(database=db.database) as session:
+        result = session.run(query)
+        connections = [record.data() for record in result]
+
+    db.close()
+
+    return connections
+
+def get_person_centrality():
+    db = Neo4jDatabase()
+
+    query = """
+    MATCH (p:Person)
+    OPTIONAL MATCH (p)-[r]-()
+    WITH p, count(r) AS connections
+    RETURN
+        p.id AS person_id,
+        p.name AS person_name,
+        connections
+    ORDER BY connections DESC
+    """
+
+    with db.driver.session(database=db.database) as session:
+        result = session.run(query)
+        centrality = [record.data() for record in result]
+
+    db.close()
+
+    return centrality
+
+def get_communities():
+    db = Neo4jDatabase()
+
+    query = """
+    MATCH (p1:Person)-[*1..3]-(p2:Person)
+    WHERE p1.id < p2.id
+
+    WITH p1, p2, count(*) AS strength
+
+    RETURN
+        p1.id AS person1_id,
+        p1.name AS person1_name,
+        p2.id AS person2_id,
+        p2.name AS person2_name,
+        strength
+
+    ORDER BY strength DESC
+    """
+
+    with db.driver.session(database=db.database) as session:
+        result = session.run(query)
+        communities = [record.data() for record in result]
+
+    db.close()
+
+    return communities
+
+def get_case_timeline():
+    db = Neo4jDatabase()
+
+    query = """
+    MATCH (c:Case)
+    OPTIONAL MATCH (c)-[:OCCURRED_AT]->(l:Location)
+
+    RETURN
+        c.id AS case_id,
+        c.type AS case_type,
+        c.date AS date,
+        c.status AS status,
+        l.id AS location_id,
+        l.name AS location_name
+
+    ORDER BY c.date
+    """
+
+    with db.driver.session(database=db.database) as session:
+        result = session.run(query)
+        timeline = [record.data() for record in result]
+
+    db.close()
+
+    return timeline

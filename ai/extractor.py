@@ -7,9 +7,11 @@ KNOWN_LOCATIONS = {
     "connaught place",
     "sector 18 market",
     "cyber hub",
-    "central warehouse"
+    "central warehouse",
+    "old delhi market",
+    "noida sector 62",
+    "mg road"
 }
-
 
 def extract_entities(text: str):
 

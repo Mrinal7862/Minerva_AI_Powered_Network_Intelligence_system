@@ -1,7 +1,7 @@
 from .extractor import extract_entities
 from .custom_entity import extract_custom_entities
 from .relationship_extractor import extract_relationships
-
+from .entity_linker import link_entity
 
 def normalize_text(value):
     return " ".join(value.split())
@@ -109,11 +109,16 @@ def analyze_text(text: str):
 
             existing_names.add(target.lower())
 
-    # -----------------------------
-    # 5. Return final analysis
-    # -----------------------------
+    linked_entites = []
+
+    for entity in unique_entities:
+        linked_entites.append(
+            link_entity(entity)
+        )
+
     return {
         "entities": unique_entities,
+        "linked_entities":linked_entites,
         "relationships": relationships
     }
 
