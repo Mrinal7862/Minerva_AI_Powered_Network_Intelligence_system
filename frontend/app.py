@@ -133,7 +133,7 @@ st.markdown(
 
 st.markdown(
     '<div class="minerva-subtitle">'
-    'AI-Powered Investigative Network Intelligence'
+    'AI-Powered Investigative Network Intelligence'<br>'MINERVA is demonstrated on synthetic investigative data to ensure privacy and safe evaluation; the same pipeline can ingest real investigation datasets when provided through authorized data sources'
     '</div>',
     unsafe_allow_html=True
 )
